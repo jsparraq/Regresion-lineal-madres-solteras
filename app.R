@@ -8,9 +8,7 @@ ui <- fluidPage(
   titlePanel("Calidad de vida de una madre soltera"),
   tabsetPanel(
   tabPanel("Estructura del hogar", 
-           sidebarLayout(sidebarPanel(verticalLayout(textInput("families", "Familia:", "0000"),
-                                                     textOutput("result"),
-                                                     DT::dataTableOutput("table")),                                              renderTable('table')), 
+           sidebarLayout(sidebarPanel(verticalLayout(dataTableOutput("table")),                                              renderTable('table')), 
                            mainPanel(visNetworkOutput("network")))),
     tabPanel("Regresión lineal", "contents"),
     tabPanel("Formulario", "contents"))
@@ -20,15 +18,16 @@ server <- function(input, output) {
   #Load DB
   DataBase <- read_csv("Caracteristicas y composicion del hogar.csv")
   
-  #Evento de cuando cambia el campo de texto
-  observeEvent(input$families, { # Si se va a usar el texto quitar este comentario
-    familyQuery$data <- input$families # Si se va a usar el text quitar este comentario
-    output$result <- renderText({""})
-  })
   familyQuery <- reactiveValues(data = NULL)
   
   queryFamilies=sqldf("SELECT LLAVEHOG FROM DataBase group by LLAVEHOG")
-  output$table <- DT::renderDataTable(queryFamilies)
+  output$table <- renderDataTable(queryFamilies, 
+                                  selection = 'single')
+  
+  observeEvent(input$table_cell_clicked, {
+    familyQuery$data <- input$table_cell_clicked
+  })
+  
   
   output$network <- renderVisNetwork({
     query=paste("SELECT * FROM DataBase WHERE LLAVEHOG = '",familyQuery$data,sep="")
