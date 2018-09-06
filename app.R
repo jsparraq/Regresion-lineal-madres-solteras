@@ -16,11 +16,11 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   #Load DB
-  DataBase <- read_csv("Caracteristicas y composicion del hogar.csv")
+  DataBase <- read_csv("ComposicionFinal.csv")
   
   familyQuery <- reactiveValues(data = NULL)
   
-  queryFamilies=sqldf("SELECT LLAVEHOG FROM DataBase group by LLAVEHOG")
+  queryFamilies=sqldf("SELECT idf FROM DataBase group by idf")
   output$table <- renderDataTable(queryFamilies, 
                                   selection = 'single')
   
@@ -30,8 +30,8 @@ server <- function(input, output) {
   
   
   output$network <- renderVisNetwork({
-    query=paste("SELECT * FROM DataBase WHERE LLAVEHOG = '",familyQuery$data,sep="")
-    query=paste(query,"\' ORDER BY ORDEN",sep="")
+    query=paste("SELECT * FROM DataBase WHERE idf = '",familyQuery$data,sep="")
+    query=paste(query,"\' ORDER BY id",sep="")
     #Do query
     queryFamily = sqldf(query)
     if(nrow(queryFamily) == 0){
@@ -46,11 +46,11 @@ server <- function(input, output) {
       label = c()
       for (row in 1:nrow(queryFamily)) {
         label = c(label, row)
-        sex <- queryFamily[row, 'P6020']
-        relationship <- queryFamily[row, 'P6051']
-        father <- queryFamily[row, 'P6081']
-        mother <- queryFamily[row, 'P6083']
-        spouse <- queryFamily[row, 'P6071']
+        sex <- queryFamily[row, 'sexo']
+        relationship <- queryFamily[row, 'parentescoJefe']
+        father <- queryFamily[row, 'padre']
+        mother <- queryFamily[row, 'madre']
+        spouse <- queryFamily[row, 'conyugue']
         #Color node
         if(sex == 1){
           Sex = c(Sex, 'skyblue')
@@ -64,7 +64,7 @@ server <- function(input, output) {
         }
         
         # Relationship with home lead
-        if(relationship == 2 || relationship == 3 || relationship == 5 || relationship == 7 || relationship == 9){
+        if(relationship == 2 || relationship == 3 || relationship == 5 || relationship == 7){
           edgesTo <- c(edgesTo, 1)
           edgesFrom <- c(edgesFrom, row)
           if(relationship == 2){
@@ -73,20 +73,20 @@ server <- function(input, output) {
           }
         }
         
-        if(father == 1 && queryFamily[row, 'P6081S1'] != 1){
+        if(father == 1 && queryFamily[row, 'padreNo'] != 1){
           edgesFrom <- c(edgesFrom, row)
-          edgesTo <- c(edgesTo, queryFamily[row, 'P6081S1'])
+          edgesTo <- c(edgesTo, queryFamily[row, 'padreNo'])
         }
         
-        if(mother == 1 && queryFamily[row, 'P6083S1'] != 1){
+        if(mother == 1 && queryFamily[row, 'madreNo'] != 1){
           edgesFrom <- c(edgesFrom, row)
-          edgesTo <- c(edgesTo, queryFamily[row, 'P6083S1'])
+          edgesTo <- c(edgesTo, queryFamily[row, 'madreNo'])
         }
         
-        if(spouse == 1 && queryFamily[row, 'P6071S1'] != 1 && queryFamily[row, 'P6071S1'] > row){
+        if(spouse == 1 && queryFamily[row, 'conyugueNo'] != 1 && queryFamily[row, 'conyugueNo'] > row){
           edgesTo <- c(edgesTo, row)
-          edgesFrom <- c(edgesFrom, queryFamily[row, 'P6071S1'])
-          edgesTo <- c(edgesTo, queryFamily[row, 'P6071S1'])
+          edgesFrom <- c(edgesFrom, queryFamily[row, 'conyugueNo'])
+          edgesTo <- c(edgesTo, queryFamily[row, 'conyugueNo'])
           edgesFrom <- c(edgesFrom, row)
         }
       }
