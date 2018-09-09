@@ -3,6 +3,8 @@ library(visNetwork)
 library(sqldf)
 library(readr)
 library(DT)
+library(dplyr)
+
 
 ui <- fluidPage(
   titlePanel("Calidad de vida de una madre soltera"),
@@ -16,11 +18,12 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   #Load DB
-  DataBase <- read_csv("ComposicionFinal.csv")
+  DataBase <- read_csv("BD/EstructuraFamiliar.csv")
+  distinct_(DataBase, "LLAVEHOG", "ORDEN")
   
   familyQuery <- reactiveValues(data = NULL)
   
-  queryFamilies=sqldf("SELECT idf FROM DataBase group by idf")
+  queryFamilies=sqldf("SELECT LLAVEHOG FROM DataBase group by LLAVEHOG")
   output$table <- renderDataTable(queryFamilies, 
                                   selection = 'single')
   
@@ -30,8 +33,8 @@ server <- function(input, output) {
   
   
   output$network <- renderVisNetwork({
-    query=paste("SELECT * FROM DataBase WHERE idf = '",familyQuery$data,sep="")
-    query=paste(query,"\' ORDER BY id",sep="")
+    query=paste("SELECT DISTINCT * FROM DataBase WHERE LLAVEHOG = '",familyQuery$data,sep="")
+    query=paste(query,"\' ORDER BY ORDEN",sep="")
     #Do query
     queryFamily = sqldf(query)
     if(nrow(queryFamily) == 0){
@@ -44,13 +47,15 @@ server <- function(input, output) {
       edgesTo = c()
       edgesFrom = c()
       label = c()
+      labelEdges = c() 
       for (row in 1:nrow(queryFamily)) {
         label = c(label, row)
         sex <- queryFamily[row, 'sexo']
-        relationship <- queryFamily[row, 'parentescoJefe']
+        relationship <- queryFamily[row, 'parentesco']
         father <- queryFamily[row, 'padre']
         mother <- queryFamily[row, 'madre']
         spouse <- queryFamily[row, 'conyugue']
+        
         #Color node
         if(sex == 1){
           Sex = c(Sex, 'skyblue')
@@ -59,42 +64,37 @@ server <- function(input, output) {
           Sex = c(Sex, 'pink')
         }
         
-        if(relationship == 1){
-          next
-        }
-        
         # Relationship with home lead
-        if(relationship == 2 || relationship == 3 || relationship == 5 || relationship == 7){
+        if(relationship == 7){
+          labelEdges <- c(labelEdges, '')
           edgesTo <- c(edgesTo, 1)
           edgesFrom <- c(edgesFrom, row)
-          if(relationship == 2){
-            edgesFrom <- c(edgesFrom, 1)
-            edgesTo <- c(edgesTo, row)
-          }
         }
         
-        if(father == 1 && queryFamily[row, 'padreNo'] != 1){
+        if(father == 1){
+          labelEdges <- c(labelEdges, '')
           edgesFrom <- c(edgesFrom, row)
           edgesTo <- c(edgesTo, queryFamily[row, 'padreNo'])
         }
         
-        if(mother == 1 && queryFamily[row, 'madreNo'] != 1){
+        if(mother == 1){
+          labelEdges <- c(labelEdges, 'Madre')
           edgesFrom <- c(edgesFrom, row)
           edgesTo <- c(edgesTo, queryFamily[row, 'madreNo'])
         }
         
-        if(spouse == 1 && queryFamily[row, 'conyugueNo'] != 1 && queryFamily[row, 'conyugueNo'] > row){
+        if(spouse == 1 ){
+          labelEdges <- c(labelEdges, '')
           edgesTo <- c(edgesTo, row)
           edgesFrom <- c(edgesFrom, queryFamily[row, 'conyugueNo'])
-          edgesTo <- c(edgesTo, queryFamily[row, 'conyugueNo'])
-          edgesFrom <- c(edgesFrom, row)
         }
+        
       }
       
       nodes <- data.frame(id = 1:nrow(queryFamily), 
                           color = Sex,
                           label = label)
-      edges <- data.frame(from = edgesFrom, to = edgesTo)
+      edges <- data.frame(from = edgesFrom, to = edgesTo, label = labelEdges)
       
       visNetwork(nodes, edges, main = "Estructura familiar", height = "100%", width = "100%") %>%
         visEdges(arrows =list(to = list(enabled = TRUE, scaleFactor = 1.4)),
