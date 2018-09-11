@@ -6,14 +6,49 @@ library(DT)
 library(dplyr)
 
 
-ui <- fluidPage(
+ui <- fluidPage(align="center",
   titlePanel("Calidad de vida de una madre soltera"),
   tabsetPanel(
   tabPanel("Estructura del hogar", 
            sidebarLayout(sidebarPanel(verticalLayout(dataTableOutput("table")),                                              renderTable('table')), 
                            mainPanel(visNetworkOutput("network")))),
-    tabPanel("Regresión lineal", "contents"),
-    tabPanel("Formulario", "contents"))
+  
+  tabPanel("Formulario", fluidRow(
+              #column(12,align="center",textInput("estrato", "Estrato")),
+              selectInput("estrato", "Estrato",
+                          list(`Estrato` = c(" ","1", "2", "3","4","5","6","8"))
+              ),
+              #column(12,align="center",textInput("tipo.con", "Tipo contrato")),
+              selectInput("tipo.con", "Tipo contrato",
+                          list(`Contrato` = c("", "Formal", "Informal"))
+              ),
+              column(12,align="center",textInput("nohijos", "Numero de hijos")),
+              #column(12,align="center",textInput("salud", "Salud")),
+              selectInput("salud", "Esta afiliado",
+                          list(`Afiliación` = c("", "Si", "No", "No Sabe, No informa"))
+              ),
+              #column(12,align="center",textInput("nvledu", "Nivel de Educación")),
+              selectInput("nvledu", "Nivel de Educación",
+                          list(`Afiliación` = c("", "1 Ninguno " 
+                                                ,"2 Preescolar "
+                                                ,"3 Básica Primaria (1º - 5º)" 
+                                                ,"4 Básica secundaria (6º--9º)"
+                                                ,"5 Media (10º--13º)"
+                                                ,"6 Técnico sin título" 
+                                                ,"7 Técnico con título "
+                                                ,"8 Tecnológico sin título"
+                                                ,"9 Tecnológico con título "
+                                                ,"10 Universitario sin titulo" 
+                                                ,"11 Universitario con titulo" 
+                                                ,"12 Postgrado sin titulo "
+                                                ,"13 Postgrado con titulo"))
+              ),
+              column(12,align="center",actionButton("regres", "Enviar")),
+              column(12,align="center",textOutput("satisfaccion"))
+              
+              
+    ))
+)
 )
 
 server <- function(input, output) {
@@ -26,6 +61,15 @@ server <- function(input, output) {
   queryFamilies=sqldf("SELECT LLAVEHOG FROM DataBase group by LLAVEHOG")
   output$table <- renderDataTable(queryFamilies, 
                                   selection = 'single')
+  
+  observeEvent(input$regres, {
+    
+   # satisfaccion <- ((input$estrato*) + (input$tipo.con*)) * (input$nohijos*) * (input$salud*)*(input$nvledu)
+    
+    output$satisfaccion <- renderText({ 
+      "La respuesta es:" #+ output$satisfaccion
+    })
+  })
   
   observeEvent(input$table_cell_clicked, {
     familyQuery$data <- input$table_cell_clicked
