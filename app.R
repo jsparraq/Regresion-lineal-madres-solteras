@@ -56,12 +56,22 @@ server <- function(input, output) {
   ############ Formulario ###########
   observeEvent(input$regres, {
     contrato = 0
+    estrato2 = 0
+    estrato5 = 0
+    estrato6 = 0
     if(input$tipoCon == "Formal"){
       contrato = 2
     }else if(input$tipoCon == "Informal"){
       contrato = 1
     }
-    satisfaccion <- as.numeric(input$estrato) + contrato
+    if(input$estrato == "2"){
+      estrato2 = 1
+    }else if(input$estrato == "5"){
+      estrato5 = 1
+    }else if(input$estrato == "6"){
+      estrato6 = 1
+    }
+    satisfaccion <- 8.38 + 0.3020*estrato2 + 1.5474*estrato5 + 1.9936*estrato6-0.4477*contrato-0.4941*contrato
     resultado = paste("El nivel de satisfaccion de la mujer es:", satisfaccion, sep=" ")
     output$satisfaccion <- renderText({
       resultado
