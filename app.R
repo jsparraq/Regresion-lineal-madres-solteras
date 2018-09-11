@@ -12,7 +12,9 @@ ui <- fluidPage(align="center",
   tabPanel("Estructura del hogar", 
            sidebarLayout(sidebarPanel(verticalLayout(dataTableOutput("table")),                                              renderTable('table')), 
                            mainPanel(verticalLayout(visNetworkOutput("network"),
-                                                    dataTableOutput("familia"))))),
+                                                    dataTableOutput("familia")),
+                                     dataTableOutput("table2"))
+                                      )),
   
   tabPanel("Formulario", fluidRow(
               selectInput("estrato", "Estrato",
@@ -38,6 +40,20 @@ server <- function(input, output) {
   output$table <- renderDataTable(queryFamilies, 
                                   selection = 'single')
   
+  ########### Tabla de los valores de la madre #######
+  #Load BDTodasColumnas
+  
+  DataBase2 <- read_csv("BD/BDTodasColumnas.csv")
+  
+  distinct_(DataBase2, "LLAVEHOG", "ORDEN")
+  
+  query=paste("SELECT TipoContrato, Estrato FROM DataBase2 WHERE LLAVEHOG = '",familyQuery$data,sep="")
+  
+  
+  
+  
+  
+  ############ Formulario ###########
   observeEvent(input$regres, {
     contrato = 0
     if(input$tipoCon == "Formal"){
@@ -56,6 +72,7 @@ server <- function(input, output) {
     familyQuery$data <- input$table_cell_clicked
   })
   
+  ######### RED  ######
   output$network <- renderVisNetwork({
     query=paste("SELECT DISTINCT * FROM DataBase WHERE LLAVEHOG = '",familyQuery$data,sep="")
     query=paste(query,"\' ORDER BY ORDEN",sep="")
