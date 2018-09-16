@@ -24,14 +24,15 @@ ui <- fluidPage(align="center",
                           list(`Contrato` = c("", "Formal", "Informal"))
               ),
               column(12,align="center",actionButton("regres", "Enviar")),
-              column(12,align="center",textOutput("satisfaccion"))
+              column(12,align="center",br()),
+              column(12,align="center",h3(textOutput("satisfaccion")))
     ))
 )
 )
 
 server <- function(input, output) {
   #Load DB
-  DataBase <- read_csv("BD/EstructuraFamiliar.csv")
+  DataBase <- read_csv("BD/EstructuraFamiliarFinal.csv")
   distinct_(DataBase, "LLAVEHOG", "ORDEN")
   
   familyQuery <- reactiveValues(data = NULL)
@@ -42,15 +43,6 @@ server <- function(input, output) {
   
   ########### Tabla de los valores de la madre #######
   #Load BDTodasColumnas
-  
-  DataBase2 <- read_csv("BD/BDTodasColumnas.csv")
-  
-  distinct_(DataBase2, "LLAVEHOG", "ORDEN")
-  
-  query=paste("SELECT TipoContrato, Estrato FROM DataBase2 WHERE LLAVEHOG = '",familyQuery$data,sep="")
-  
-  
-  
   
   
   ############ Formulario ###########
@@ -80,6 +72,14 @@ server <- function(input, output) {
   
   observeEvent(input$table_cell_clicked, {
     familyQuery$data <- input$table_cell_clicked
+    DataBase2 <- read_csv("BD/RegresionLineal.csv")
+    distinct_(DataBase2, "LLAVEHOG", "ORDEN")
+    query=paste("SELECT DISTINCT * FROM DataBase2 WHERE LLAVEHOG = '",input$table_cell_clicked,sep="")
+    query=paste(query,"\' ORDER BY ORDEN",sep="")
+    #Do query
+    queryFamilies = sqldf(query)
+    output$table2 <- renderDataTable(queryFamilies, 
+                                     selection = 'single')
   })
   
   ######### RED  ######
@@ -106,12 +106,14 @@ server <- function(input, output) {
         father <- queryFamily[row, 'padre']
         mother <- queryFamily[row, 'madre']
         spouse <- queryFamily[row, 'conyugue']
+        singleMother <- queryFamily[row, 'MadreSoltera']
         
         #Color node
-        if(sex == 1){
+        if (singleMother == 1){
+          Sex = c(Sex, 'green')
+        }else if(sex == 1){
           Sex = c(Sex, 'skyblue')
-        }
-        if(sex == 2){
+        }else if(sex == 2){
           Sex = c(Sex, 'pink')
         }
         

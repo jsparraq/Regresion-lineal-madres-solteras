@@ -1,4 +1,4 @@
-ORDEN, sexo, parentesco, conyugue, conyugueNo, padre, padreNo, madre, madreNo,LLAVEHOG
+ORDEN,sexo,parentesco,conyugue,conyugueNo,padre,padreNo,madre,madreNo,LLAVEHOG
 1,1,1,1,2,3,0,3,0,60000001
 2,2,2,1,1,3,0,2,0,60000001
 3,2,3,0,0,1,1,1,2,60000001
