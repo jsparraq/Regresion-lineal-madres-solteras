@@ -10,7 +10,7 @@ ui <- fluidPage(align="center",
   titlePanel("Calidad de vida de una madre soltera"),
   tabsetPanel(
   tabPanel("Estructura del hogar", 
-           sidebarLayout(sidebarPanel(verticalLayout(dataTableOutput("table")),                                              renderTable('table')), 
+           sidebarLayout(sidebarPanel(verticalLayout(dataTableOutput("table")), renderTable('table')), 
                            mainPanel(verticalLayout(visNetworkOutput("network"),
                                                     dataTableOutput("familia")),
                                      dataTableOutput("table2"))
@@ -110,7 +110,7 @@ server <- function(input, output) {
         
         #Color node
         if (singleMother == 1){
-          Sex = c(Sex, 'green')
+          Sex = c(Sex, '#66A61E')
         }else if(sex == 1){
           Sex = c(Sex, 'skyblue')
         }else if(sex == 2){
